@@ -40,37 +40,39 @@ public class CraftingDropper
 
         DropperBlockEntity dropper = (DropperBlockEntity)world.getBlockEntity(pos);
         List<ItemStack> ingredients = new ArrayList<>(9);
-
+		List<ItemStack> listForCompare = new ArrayList<>(9);
         for (int i = 0; i < 9; i++)
         {
             @SuppressWarnings("ConstantConditions") ItemStack stack = InventoryUtil.singleItemOf(dropper.getStack(i));
             addToMergedItemStackList(ingredients, stack);
+			listForCompare.add(i, stack);
             craftingInventory.setStack(i, stack);
         }
 
-        if (patternMode && !InventoryUtil.takeItems(inventoryBehind, ingredients, facing, false))
+        if (craftingInventory.isEmpty() || patternMode && !InventoryUtil.takeItems(inventoryBehind, ingredients, facing, false))
         {
             ci.cancel();
             return;
         }
 
         DropperRecipeCache cache = (DropperRecipeCache)dropper;
+	    DropperItemsCache itemsCache = (DropperItemsCache) dropper;
         CraftingRecipe recipe = cache.get();
 
-        if (recipe == null || !recipe.matches(craftingInventory, world))
+        if (!InventoryUtil.compareList(itemsCache.getCachedList(), listForCompare) || itemsCache.getCachedList().isEmpty() && (recipe == null || !recipe.matches(craftingInventory, world) )) //check if inventory has changed
         {
-            recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+	        recipe = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory, world).orElse(null);
+	        itemsCache.setCachedList(InventoryUtil.deepCopy(listForCompare));
         }
 
         if (recipe != null)
         {
             cache.set(recipe);
-
             List<ItemStack> craftingResults = new ArrayList<>();
 
             addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory));
 
-            for (ItemStack remainingStack : world.getRecipeManager().getRemainingStacks(RecipeType.CRAFTING, craftingInventory, world))
+            for (ItemStack remainingStack : recipe.getRemainder(craftingInventory))
             {
                 addToMergedItemStackList(craftingResults, remainingStack);
             }

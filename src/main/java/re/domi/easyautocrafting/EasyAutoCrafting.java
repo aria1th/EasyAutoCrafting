@@ -4,6 +4,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.impl.event.lifecycle.LoadedChunksCache;
 
+import java.util.ArrayList;
+
 public class EasyAutoCrafting implements ModInitializer
 {
     @Override
@@ -15,8 +17,19 @@ public class EasyAutoCrafting implements ModInitializer
             {
                 server.getWorlds().forEach(
                     w -> ((LoadedChunksCache)w).fabric_getLoadedChunks().forEach(
-                        c -> c.getBlockEntities().values().stream().filter(DropperRecipeCache.class::isInstance).forEach(
-                            d -> ((DropperRecipeCache)d).set(null))));
+                        c -> {
+	                        c.getBlockEntities().values().stream().filter(DropperRecipeCache.class::isInstance).forEach(
+		                        d -> {
+			                        ((DropperRecipeCache) d).set(null);
+		                        }
+	                        );
+	                        c.getBlockEntities().values().stream().filter(DropperItemsCache.class::isInstance).forEach(
+		                        d -> {
+			                        ((DropperItemsCache) d).setCachedList(new ArrayList<>(9));
+		                        }
+	                        );
+                        }
+						));
             }
         });
     }

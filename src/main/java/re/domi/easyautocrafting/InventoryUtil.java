@@ -200,7 +200,7 @@ public class InventoryUtil
         return stacks.isEmpty();
     }
 
-    private static List<ItemStack> deepCopy(List<ItemStack> list)
+    public static List<ItemStack> deepCopy(List<ItemStack> list)
     {
         List<ItemStack> copy = new ArrayList<>(list.size());
 
@@ -211,4 +211,15 @@ public class InventoryUtil
 
         return copy;
     }
+	public static boolean compareList(List<ItemStack> preList, List<ItemStack> afterList)
+	{
+		if(preList == null || preList.size() != afterList.size()){
+			return false;
+		}
+		for (int i =0; i < preList.size(); i++){
+			if(!preList.get(i).isOf(afterList.get(i).getItem()))
+				return false;
+		}
+		return true;
+	}
 }
